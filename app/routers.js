@@ -11,6 +11,6 @@ module.exports = function(app) {
     app.get('/api/system/exit',System.exit);  //退出后台系统
 
     app.get('/api/task/list',Task.getList); //获取任务列表
-
     
+    app.post('/api/task/complete',Task.complete);  //任务完成传输图片和内容  
 }
