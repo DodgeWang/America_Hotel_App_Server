@@ -61,8 +61,26 @@ exports.getList = function(req, res, next) {
  * @return {null}     
  */
 exports.complete = function(req, res, next){
+//   async.waterfall([  
+//     function(callback){  
+//         callback(null, 'one', 'two');  
+//         console.log('1');  
+//     },  
+//     function(arg1, arg2, callback){  
+//         callback(null, 'three');  
+//         console.log(arg1);  
+//         console.log(arg2);  
+//     },  
+//     function(arg1, callback){  
+//         console.log(arg1);   
+//         callback(null, 'done');  
+        
+//     }  
+// ], function (err, result) {  
+//     console.log(result);  
+     
+// });  
 
-	console.log("req.body内容",req.body)
    //创建form表单数据的解析对象
 　　var form = new formidable.IncomingForm();
    //设置编码
@@ -76,31 +94,49 @@ exports.complete = function(req, res, next){
    //设置单文件大小限制    
    form.maxFieldsSize = 200 * 1024;
    //开始文件上传
-　　form.parse(req, function (error, fields, files) {
+   form.parse(req, function (error, fields, files) {
         if (error) return res.json(resUtil.generateRes(null, Status.BaseState.ERROR));
-        console.log("fields内容",fields)
-        console.log("=========================================")
-        console.log("files内容",files)
-        console.log("files内容类型",typeof files)
-        // //文件上传时间戳
-        // var t = new Date().getTime();
-        // //生成随机数
-        // var ran = parseInt(Math.random() * 8999 + 10000);
-        // //拿到扩展名
-        // var extname = path.extname(files.file.name);
-        // //旧的路径名
-        // var oldpath = files.file.path;
-        // //新的路径名
-        // var newpath = process.cwd() + '/uploadFile/picture/' + t + ran + extname;
-        // //改名
-        // fs.rename(oldpath, newpath, function(err) {
-        //     if (err) {
-        //         throw Error("改名失败");
-        //         return res.json(resUtil.generateRes(null, Status.BaseState.ERROR));
-        //     }
-        //     res.json(resUtil.generateRes(null, Status.BaseState.SUCCESS));
-        // })
-        res.json(resUtil.generateRes(null, Status.BaseState.SUCCESS));
+        // console.log("fields内容",fields)
+        // console.log("=========================================")
+        // console.log("files内容",files)
+        var fileList = [];
+        for(a in files){
+           var nameObj = {}
+           //文件上传时间戳
+           var t = new Date().getTime();
+           //生成随机数
+           var ran = parseInt(Math.random() * 8999 + 10000);
+           //拿到扩展名
+           var extname = path.extname(files[a].name);
+           //旧的路径名
+           nameObj.oldpath = files[a].path;
+           //新的路径名
+           nameObj.newpath = process.cwd() + '/uploadFile/picture/' + t + ran + extname;
+           fileList.push(nameObj);
+        }
+        //重新命名所有上传的文件名称
+        reName(0,fileList,function(err){
+           if(err){
+              return res.json(resUtil.generateRes(null, Status.BaseState.ERROR));
+           }
+           return res.json(resUtil.generateRes(null, Status.BaseState.SUCCESS));
+        })
+    })
+}
+
+
+function reName(i,fileList,cb){
+    fs.rename(fileList[i].oldpath, fileList[i].newpath, function(err) {
+            if (err) {
+                throw Error("改名失败");
+                return cb(err)
+            }
+            if(i < fileList.length-1){
+               i+=1;
+               reName(i,fileList,cb);
+            }else{
+               cb(null)
+            }          
     })
 }
 
